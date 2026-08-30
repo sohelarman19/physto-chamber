@@ -51,28 +51,23 @@ th{background:#f7f9fb}
 .small{font-size:12px;color:#667085}
 .hidden{display:none!important}
 
-/* স্থায়ী ও আকর্ষণীয় ইনস্টল নোটিফিকেশন ব্যানার */
-#installBanner {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  right: 20px;
-  max-width: 500px;
-  margin: 0 auto;
-  background: #173b57;
-  color: #fff;
-  padding: 16px 20px;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  animation: slideUp 0.4s ease;
-  border: 2px solid #25d366;
+/* পিন লক স্ক্রিন ওভারলে */
+#pinLockScreen {
+  position: fixed; inset: 0; background: #173b57; z-index: 99999;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
 }
-@keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.pin-box {
+  background: #fff; padding: 30px; border-radius: 16px; width: 100%; max-width: 380px; text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.pin-box h2 { margin-top: 0; color: #173b57; }
+
+#installBanner {
+  position: fixed; bottom: 20px; left: 20px; right: 20px; max-width: 500px; margin: 0 auto;
+  background: #173b57; color: #fff; padding: 16px 20px; border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35); z-index: 9999; display: flex; align-items: center;
+  justify-content: space-between; gap: 15px; border: 2px solid #25d366;
+}
 
 @media(max-width:800px){
 .cardgrid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}
@@ -84,7 +79,16 @@ th{background:#f7f9fb}
 </head>
 <body>
 
-<!-- ইনস্টল নোটিফিকেশন পপআপ (ফাইল লোকালভাবে ওপেন করলেও শো করবে) -->
+<!-- পিন লক স্ক্রিন -->
+<div id="pinLockScreen">
+  <div class="pin-box">
+    <h2>🔐 সিকিউরিটি পিন দিন</h2>
+    <p class="small" style="margin-bottom:15px;">অ্যাপটি ব্যবহার করতে ৪ ডিজিটের পিন কোড দিন (ডিফল্ট: 1234)</p>
+    <input type="password" id="unlockPinInput" placeholder="পিন কোড লিখুন" style="text-align:center; font-size:20px; letter-spacing:5px; margin-bottom:15px;" maxlength="6">
+    <button class="btn" style="width:100%;" onclick="verifyPin()">আনলক করুন</button>
+  </div>
+</div>
+
 <div id="installBanner">
   <div>
     <strong>📱 অ্যাপটি ইনস্টল করুন</strong>
@@ -108,8 +112,9 @@ th{background:#f7f9fb}
 
 <main class="main">
 <div class="top">
-  <div><h1>Physiotherapy Chamber Manager</h1><div class="small">অনলাইন সিংক ও PWA মোড চালু</div></div>
-  <div style="display:flex;gap:8px;">
+  <div><h1>Physiotherapy Chamber Manager</h1><div class="small">অনলাইন সিংক ও সিকিউরিটি সুরক্ষিত</div></div>
+  <div style="display:flex;gap:8px; flex-wrap:wrap;">
+    <button class="btn2" onclick="openChangePinModal()">🔒 পিন পরিবর্তন</button>
     <button id="installBtnHeader" class="btn btn-wa" onclick="installApp()">📱 ইনস্টল</button>
     <button class="btn" onclick="openPatient()">+ নতুন রোগী</button>
   </div>
@@ -238,12 +243,65 @@ th{background:#f7f9fb}
 <button class="btn" onclick="savePatient()">সেভ করুন</button>
 <button class="btn2" onclick="closeModal()">বন্ধ করুন</button>
 </div>
+
+<!-- পিন পরিবর্তনের পপআপ মডাল -->
+<div id="pinModal" class="panel hidden" style="position:fixed;inset:20% 10%;max-width:400px;margin:auto;z-index:10000;box-shadow:0 10px 50px #0004">
+<h3>🔒 পিন কোড পরিবর্তন করুন</h3>
+<div class="formgrid" style="grid-template-columns:1fr;">
+  <div class="field"><label>বর্তমান পিন</label><input type="password" id="oldPin"></div>
+  <div class="field"><label>নতুন পিন</label><input type="password" id="newPin"></div>
+</div><br>
+<button class="btn" onclick="updatePin()">পরিবর্তন করুন</button>
+<button class="btn2" onclick="closePinModal()">বন্ধ করুন</button>
+</div>
+
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+// পিন ভেরিফিকেশন লজিক
+function verifyPin() {
+    const enteredPin = document.getElementById('unlockPinInput').value;
+    const savedPin = localStorage.getItem('app_security_pin') || '1234';
+    if(enteredPin === savedPin) {
+        document.getElementById('pinLockScreen').classList.add('hidden');
+    } else {
+        alert('ভুল পিন কোড! আবার চেষ্টা করুন।');
+        document.getElementById('unlockPinInput').value = '';
+    }
+}
+
+function openChangePinModal() {
+    document.getElementById('oldPin').value = '';
+    document.getElementById('newPin').value = '';
+    document.getElementById('pinModal').classList.remove('hidden');
+}
+
+function closePinModal() {
+    document.getElementById('pinModal').classList.add('hidden');
+}
+
+function updatePin() {
+    const oldP = document.getElementById('oldPin').value;
+    const newP = document.getElementById('newPin').value;
+    const currentPin = localStorage.getItem('app_security_pin') || '1234';
+
+    if(oldP !== currentPin) {
+        alert('বর্তমান পিন সঠিক নয়!');
+        return;
+    }
+    if(!newP || newP.length < 3) {
+        alert('কমপক্ষে ৩ বা ৪ ডিজিটের নতুন পিন দিন।');
+        return;
+    }
+
+    localStorage.setItem('app_security_pin', newP);
+    alert('পিন কোড সফলভাবে পরিবর্তন করা হয়েছে!');
+    closePinModal();
+}
+
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
