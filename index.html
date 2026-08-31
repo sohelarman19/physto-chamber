@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Physiotherapy Chamber Manager (PWA & WhatsApp)</title>
+<title>Physiotherapy Chamber Manager (Secure)</title>
 
 <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Physio%20Care%20Manager%22%2C%22short_name%22%3A%22PhysioCare%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f4f7fb%22%2C%22theme_color%22%3A%22%23173b57%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F3004%2F3004458.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
 
@@ -20,7 +20,7 @@ button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px}
 .main{max-width:1100px;margin:20px auto;padding:0 15px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
 h1{margin:0;font-size:24px}
-.cardgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.cardgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 3px 14px #0000000b}
 .card .label{color:#667085;font-size:14px}.value{font-size:27px;font-weight:800;margin-top:6px}
 .section{display:none}.section.active{display:block}
@@ -51,8 +51,7 @@ th{background:#f7f9fb}
 .small{font-size:12px;color:#667085}
 .hidden{display:none!important}
 
-/* পিন লক স্ক্রিন ওভারলে */
-#pinLockScreen {
+#pinLockScreen, #financePinScreen {
   position: fixed; inset: 0; background: #173b57; z-index: 99999;
   display: flex; align-items: center; justify-content: center; padding: 20px;
 }
@@ -67,6 +66,7 @@ th{background:#f7f9fb}
   background: #173b57; color: #fff; padding: 16px 20px; border-radius: 14px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.35); z-index: 9999; display: flex; align-items: center;
   justify-content: space-between; gap: 15px; border: 2px solid #25d366;
+  transition: opacity 0.5s ease;
 }
 
 @media(max-width:800px){
@@ -79,13 +79,22 @@ th{background:#f7f9fb}
 </head>
 <body>
 
-<!-- পিন লক স্ক্রিন -->
 <div id="pinLockScreen">
   <div class="pin-box">
     <h2>🔐 সিকিউরিটি পিন দিন</h2>
-    <p class="small" style="margin-bottom:15px;">অ্যাপটি ব্যবহার করতে ৪ ডিজিটের পিন কোড দিন (ডিফল্ট: 1234)</p>
+    <p class="small" style="margin-bottom:15px;">অ্যাপটি ব্যবহার করতে পিন কোড দিন (ডিফল্ট: 1234)</p>
     <input type="password" id="unlockPinInput" placeholder="পিন কোড লিখুন" style="text-align:center; font-size:20px; letter-spacing:5px; margin-bottom:15px;" maxlength="6">
     <button class="btn" style="width:100%;" onclick="verifyPin()">আনলক করুন</button>
+  </div>
+</div>
+
+<div id="financePinScreen" class="hidden">
+  <div class="pin-box">
+    <h2>🔒 আর্থিক হিসাব লকড</h2>
+    <p class="small" style="margin-bottom:15px;">এই সেকশন দেখতে আলাদা পিন দিন (ডিফল্ট: 5678)</p>
+    <input type="password" id="financePinInput" placeholder="ফাইন্যান্স পিন দিন" style="text-align:center; font-size:20px; letter-spacing:5px; margin-bottom:15px;" maxlength="6">
+    <button class="btn" style="width:100%;" onclick="verifyFinancePin()">প্রবেশ করুন</button>
+    <button class="btn2" style="width:100%; margin-top:8px;" onclick="cancelFinancePin()">বাতিল / ফিরে যান</button>
   </div>
 </div>
 
@@ -104,9 +113,8 @@ th{background:#f7f9fb}
   <button class="active" onclick="show('dashboard',this)">🏠 Dashboard</button>
   <button onclick="show('patients',this)">👤 Patients</button>
   <button onclick="show('payments',this)">💳 Payments</button>
-  <button onclick="show('finance',this)">💰 আয়-খরচ</button>
+  <button onclick="checkFinanceAccess(this)">🔒 আর্থিক হিসাব</button>
   <button onclick="show('marketing',this)">📢 মার্কেটিং</button>
-  <button onclick="show('reports',this)">📊 Reports</button>
   <button onclick="show('backup',this)">💾 Backup</button>
 </nav>
 
@@ -123,13 +131,11 @@ th{background:#f7f9fb}
 <section id="dashboard" class="section active">
   <div class="cardgrid">
     <div class="card"><div class="label">মোট রোগী</div><div class="value" id="cPatients">0</div></div>
-    <div class="card"><div class="label">মোট আয় (Payment + অন্যান্য)</div><div class="value" id="cIncome">৳0</div></div>
-    <div class="card"><div class="label">Patient Payment থেকে আয়</div><div class="value" id="cPatientIncome">৳0</div></div>
-    <div class="card"><div class="label">মোট খরচ</div><div class="value" id="cExpense">৳0</div></div>
-    <div class="card full"><div class="label">বর্তমান ব্যালেন্স</div><div class="value" id="cBalance">৳0</div></div>
+    <div class="card"><div class="label">চলতি সেশন সম্পন্ন</div><div class="value" id="cCompletedSessions">0</div></div>
+    <div class="card"><div class="label">মোট বকেয়া রোগী</div><div class="value" id="cDuePatients">0</div></div>
   </div>
   <div class="panel">
-    <h3>সাম্প্রতিক পেমেন্ট</h3>
+    <h3>সাম্প্রতিক পেমেন্ট ও সেশন</h3>
     <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>Patient ID</th><th>রোগী</th><th>মোবাইল</th><th>সেশন</th><th>টাকা</th></tr></thead><tbody id="recent"></tbody></table></div>
   </div>
 </section>
@@ -163,8 +169,14 @@ th{background:#f7f9fb}
 </section>
 
 <section id="finance" class="section">
+  <div class="cardgrid" style="grid-template-columns:repeat(4,1fr); margin-bottom:16px;">
+    <div class="card"><div class="label">মোট আয়</div><div class="value" id="cIncome">৳0</div></div>
+    <div class="card"><div class="label">Patient Payment</div><div class="value" id="cPatientIncome">৳0</div></div>
+    <div class="card"><div class="label">মোট খরচ</div><div class="value" id="cExpense">৳0</div></div>
+    <div class="card"><div class="label">বর্তমান ব্যালেন্স</div><div class="value" id="cBalance">৳0</div></div>
+  </div>
   <div class="panel">
-    <h3>অন্যান্য আয় / খরচ যোগ করুন</h3><p class="small">রোগীর Payment এখানে আলাদাভাবে Income হিসেবে লিখবেন না। Patient Payment স্বয়ংক্রিয়ভাবে মোট আয়ে যোগ হয়।</p>
+    <h3>অন্যান্য আয় / খরচ যোগ করুন</h3>
     <div class="formgrid">
       <div class="field"><label>ধরন</label><select id="finType"><option value="income">আয়</option><option value="expense">খরচ</option></select></div>
       <div class="field"><label>তারিখ</label><input type="date" id="finDate"></div>
@@ -173,16 +185,35 @@ th{background:#f7f9fb}
     </div>
     <br><button class="btn" onclick="addFinance()">সেভ করুন</button>
   </div>
+  
   <div class="panel">
-    <h3>আয়-খরচের তালিকা</h3>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+      <h3 style="margin:0;">আয়-খরচের তালিকা</h3>
+      <div style="display:flex; gap:6px;">
+        <button class="btn2" id="filterAll" onclick="setFinanceFilter('all')" style="background:#173b57; color:#fff;">সব দেখুন</button>
+        <button class="btn2" id="filterIncome" onclick="setFinanceFilter('income')">🟢 শুধু আয়</button>
+        <button class="btn2" id="filterExpense" onclick="setFinanceFilter('expense')">🔴 শুধু খরচ</button>
+      </div>
+    </div>
     <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>বিবরণ</th><th>টাকা</th><th></th></tr></thead><tbody id="financeTable"></tbody></table></div>
+  </div>
+
+  <div class="panel">
+    <h3>📊 হিসাব রিপোর্ট</h3>
+    <div class="formgrid">
+      <div class="field"><label>মাস</label><input type="month" id="reportMonth"></div>
+      <div class="field"><label>বছর</label><input type="number" id="reportYear" min="2000" max="2100"></div>
+    </div><br>
+    <button class="btn" onclick="monthReport()">মাসিক রিপোর্ট</button>
+    <button class="btn2" onclick="yearReport()">বার্ষিক রিপোর্ট</button>
+    <button class="btn2" onclick="window.print()">Print</button>
+    <div id="reportResult" class="panel hidden" style="margin-top:15px; background:#f9fafb;"></div>
   </div>
 </section>
 
 <section id="marketing" class="section">
   <div class="panel">
     <h3>📢 WhatsApp মার্কেটিং ও বাল্ক মেসেজ</h3>
-    <p class="small">আপনার সেভ করা রোগীদের হোয়াটসঅ্যাপে একসাথে বা এককভাবে মার্কেটিং ও সচেতনতামূলক বার্তা পাঠান।</p>
     <div class="formgrid">
       <div class="field full">
         <label>মেসেজের টেমপ্লেট / টেক্সট</label>
@@ -200,20 +231,6 @@ th{background:#f7f9fb}
         <tbody id="marketTable"></tbody>
       </table>
     </div>
-  </div>
-</section>
-
-<section id="reports" class="section">
-  <div class="panel">
-    <h3>হিসাব রিপোর্ট</h3>
-    <div class="formgrid">
-      <div class="field"><label>মাস</label><input type="month" id="reportMonth"></div>
-      <div class="field"><label>বছর</label><input type="number" id="reportYear" min="2000" max="2100"></div>
-    </div><br>
-    <button class="btn" onclick="monthReport()">মাসিক রিপোর্ট</button>
-    <button class="btn2" onclick="yearReport()">বার্ষিক রিপোর্ট</button>
-    <button class="btn2" onclick="window.print()">Print</button>
-    <div id="reportResult" class="panel hidden"></div>
   </div>
 </section>
 
@@ -244,12 +261,12 @@ th{background:#f7f9fb}
 <button class="btn2" onclick="closeModal()">বন্ধ করুন</button>
 </div>
 
-<!-- পিন পরিবর্তনের পপআপ মডাল -->
 <div id="pinModal" class="panel hidden" style="position:fixed;inset:20% 10%;max-width:400px;margin:auto;z-index:10000;box-shadow:0 10px 50px #0004">
 <h3>🔒 পিন কোড পরিবর্তন করুন</h3>
 <div class="formgrid" style="grid-template-columns:1fr;">
-  <div class="field"><label>বর্তমান পিন</label><input type="password" id="oldPin"></div>
-  <div class="field"><label>নতুন পিন</label><input type="password" id="newPin"></div>
+  <div class="field"><label>বর্তমান অ্যাপ পিন</label><input type="password" id="oldPin"></div>
+  <div class="field"><label>নতুন অ্যাপ পিন</label><input type="password" id="newPin"></div>
+  <div class="field" style="margin-top:10px;"><label>নতুন ফাইন্যান্স পিন (আয়-খরচের জন্য)</label><input type="password" id="newFinPin" placeholder="খালি রাখলে পরিবর্তন হবে না"></div>
 </div><br>
 <button class="btn" onclick="updatePin()">পরিবর্তন করুন</button>
 <button class="btn2" onclick="closePinModal()">বন্ধ করুন</button>
@@ -261,7 +278,6 @@ th{background:#f7f9fb}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-// পিন ভেরিফিকেশন লজিক
 function verifyPin() {
     const enteredPin = document.getElementById('unlockPinInput').value;
     const savedPin = localStorage.getItem('app_security_pin') || '1234';
@@ -273,9 +289,50 @@ function verifyPin() {
     }
 }
 
+// কিবোর্ডের এন্টার (Enter) বাটন হ্যান্ডেল করার জন্য ইভেন্ট লিসেনার
+document.getElementById('unlockPinInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        verifyPin();
+    }
+});
+
+function checkFinanceAccess(btn) {
+    document.getElementById('financePinInput').value = '';
+    document.getElementById('financePinScreen').classList.remove('hidden');
+    // সেকশন খোলার সাথে সাথে ফাইন্যান্স পিন ইনপুট বক্সে ফোকাস করে দেওয়া
+    setTimeout(() => {
+        document.getElementById('financePinInput').focus();
+    }, 100);
+}
+
+function verifyFinancePin() {
+    const entered = document.getElementById('financePinInput').value;
+    const savedFinPin = localStorage.getItem('finance_security_pin') || '5678';
+    if(entered === savedFinPin) {
+        document.getElementById('financePinScreen').classList.add('hidden');
+        show('finance', document.querySelectorAll('.topnav button')[3]);
+    } else {
+        alert('ভুল ফাইন্যান্স পিন!');
+        document.getElementById('financePinInput').value = '';
+    }
+}
+
+// ফাইন্যান্স পিন বক্সে এন্টার (Enter) বাটন হ্যান্ডেল করার জন্য ইভেন্ট লিসেনার
+document.getElementById('financePinInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        verifyFinancePin();
+    }
+});
+
+function cancelFinancePin() {
+    document.getElementById('financePinScreen').classList.add('hidden');
+    show('dashboard', document.querySelectorAll('.topnav button')[0]);
+}
+
 function openChangePinModal() {
     document.getElementById('oldPin').value = '';
     document.getElementById('newPin').value = '';
+    document.getElementById('newFinPin').value = '';
     document.getElementById('pinModal').classList.remove('hidden');
 }
 
@@ -286,19 +343,20 @@ function closePinModal() {
 function updatePin() {
     const oldP = document.getElementById('oldPin').value;
     const newP = document.getElementById('newPin').value;
+    const newFP = document.getElementById('newFinPin').value;
     const currentPin = localStorage.getItem('app_security_pin') || '1234';
 
     if(oldP !== currentPin) {
-        alert('বর্তমান পিন সঠিক নয়!');
+        alert('বর্তমান অ্যাপ পিন সঠিক নয়!');
         return;
     }
-    if(!newP || newP.length < 3) {
-        alert('কমপক্ষে ৩ বা ৪ ডিজিটের নতুন পিন দিন।');
-        return;
+    if(newP && newP.length >= 3) {
+        localStorage.setItem('app_security_pin', newP);
     }
-
-    localStorage.setItem('app_security_pin', newP);
-    alert('পিন কোড সফলভাবে পরিবর্তন করা হয়েছে!');
+    if(newFP && newFP.length >= 3) {
+        localStorage.setItem('finance_security_pin', newFP);
+    }
+    alert('পিন সফলভাবে আপডেট করা হয়েছে!');
     closePinModal();
 }
 
@@ -307,6 +365,13 @@ window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
 });
+
+setTimeout(() => {
+    const banner = document.getElementById('installBanner');
+    if (banner) {
+        banner.classList.add('hidden');
+    }
+}, 10000);
 
 function installApp() {
     if (deferredPrompt) {
@@ -337,6 +402,7 @@ const dbRef = firebase.database().ref('physio_chamber_data');
 
 let db={patients:[],payments:[],finance:[]};
 let editId=null;
+let currentFinanceFilter = 'all';
 
 const money=n=>'৳'+Number(n||0).toLocaleString('en-IN');
 const today=()=>new Date().toISOString().slice(0,10);
@@ -512,8 +578,35 @@ function addFinance(){
  finAmount.value=''; finDesc.value=''; saveData();
 }
 
+function setFinanceFilter(type) {
+    currentFinanceFilter = type;
+    document.getElementById('filterAll').style.background = type === 'all' ? '#173b57' : '#e9eef3';
+    document.getElementById('filterAll').style.color = type === 'all' ? '#fff' : '#263445';
+    
+    document.getElementById('filterIncome').style.background = type === 'income' ? '#198754' : '#e9eef3';
+    document.getElementById('filterIncome').style.color = type === 'income' ? '#fff' : '#263445';
+    
+    document.getElementById('filterExpense').style.background = type === 'expense' ? '#b42318' : '#e9eef3';
+    document.getElementById('filterExpense').style.color = type === 'expense' ? '#fff' : '#263445';
+    
+    renderFinance();
+}
+
 function renderFinance(){
- financeTable.innerHTML=db.finance.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<tr><td>${x.date}</td><td><span class="badge ${x.type==='expense'?'red':''}">${x.type==='income'?'আয়':'খরচ'}</span></td><td>${esc(x.desc)}</td><td>${money(x.amount)}</td><td><button class="mini-danger" onclick="deleteFinance('${x.id}')">Del</button></td></tr>`).join('')||'<tr><td colspan="5">কোনো রেকর্ড নেই।</td></tr>';
+ let filteredList = db.finance.slice();
+ if(currentFinanceFilter === 'income') {
+     filteredList = filteredList.filter(x => x.type === 'income');
+ } else if(currentFinanceFilter === 'expense') {
+     filteredList = filteredList.filter(x => x.type === 'expense');
+ }
+
+ financeTable.innerHTML = filteredList.sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<tr>
+   <td>${x.date}</td>
+   <td><span class="badge ${x.type==='expense'?'red':''}">${x.type==='income'?'আয়':'খরচ'}</span></td>
+   <td>${esc(x.desc)}</td>
+   <td>${money(x.amount)}</td>
+   <td><button class="mini-danger" onclick="deleteFinance('${x.id}')">Del</button></td>
+ </tr>`).join('')||'<tr><td colspan="5">কোনো রেকর্ড পাওয়া যায়নি।</td></tr>';
 }
 
 function deleteFinance(x){if(confirm('রেকর্ড মুছবেন?')){db.finance=db.finance.filter(y=>y.id!==x);saveData()}}
@@ -525,17 +618,30 @@ function totals(){
 }
 
 function renderDashboard(){
- const t=totals();
- const patientIncome=db.payments.reduce((a,b)=>a+Number(b.amount),0);
- cPatients.textContent=db.patients.length;
- cPatientIncome.textContent=money(patientIncome);
- cIncome.textContent=money(t.income);
- cExpense.textContent=money(t.expense);
- cBalance.textContent=money(t.balance);
+ cPatients.textContent = db.patients.length;
+ const totalCompletedSess = db.payments.reduce((a,b)=>a+Number(b.sessions||0),0);
+ cCompletedSessions.textContent = totalCompletedSess;
+ 
+ const dueCount = db.patients.filter(p => {
+     const paid = db.payments.filter(x => x.patientId === p.id).reduce((a,b)=>a+Number(b.amount),0);
+     return Number(p.fee) - paid > 0;
+ }).length;
+ cDuePatients.textContent = dueCount;
+
  recent.innerHTML=db.payments.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8).map(x=>{
    const p=db.patients.find(y=>y.id===x.patientId)||{};
    return `<tr><td>${x.date}</td><td>${esc(p.patientId||'-')}</td><td>${esc(p.name||'Deleted')}</td><td>${esc(p.phone||'-')}</td><td><span class="badge">${x.sessions||0} সেশন</span></td><td><b>${money(x.amount)}</b></td></tr>`
  }).join('')||'<tr><td colspan="6">কোনো পেমেন্ট নেই।</td></tr>';
+}
+
+function renderFinanceSection() {
+ const t=totals();
+ const patientIncome=db.payments.reduce((a,b)=>a+Number(b.amount),0);
+ cPatientIncome.textContent=money(patientIncome);
+ cIncome.textContent=money(t.income);
+ cExpense.textContent=money(t.expense);
+ cBalance.textContent=money(t.balance);
+ renderFinance();
 }
 
 function monthReport(){
@@ -569,7 +675,7 @@ function restoreBackup(e){
 }
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function renderAll(){renderPatients();renderPayments();renderFinance();renderDashboard();renderMarketingTable();}
+function renderAll(){renderPatients();renderPayments();renderDashboard();renderFinanceSection();renderMarketingTable();}
 
 payDate.value=today();finDate.value=today();reportYear.value=new Date().getFullYear();reportMonth.value=today().slice(0,7);
 </script>
