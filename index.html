@@ -20,9 +20,9 @@ button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px}
 .main{max-width:1100px;margin:20px auto;padding:0 15px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
 h1{margin:0;font-size:24px}
-.cardgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cardgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 3px 14px #0000000b}
-.card .label{color:#667085;font-size:14px}.value{font-size:27px;font-weight:800;margin-top:6px}
+.card .label{color:#667085;font-size:14px}.value{font-size:24px;font-weight:800;margin-top:6px}
 .section{display:none}.section.active{display:block}
 .panel{background:#fff;border-radius:16px;padding:18px;margin-top:16px;box-shadow:0 3px 14px #0000000b}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
@@ -79,10 +79,10 @@ th{background:#f7f9fb}
 </head>
 <body>
 
-<div id="pinLockScreen">
+<div id="pinLockScreen" class="hidden">
   <div class="pin-box">
     <h2>🔐 সিকিউরিটি পিন দিন</h2>
-    <p class="small" style="margin-bottom:15px;">অ্যাপটি ব্যবহার করতে পিন কোড দিন (ডিফল্ট: 1234)</p>
+    <p class="small" style="margin-bottom:15px;">আজকের দিনে প্রথমবার ব্যবহারের জন্য পিন দিন (ডিফল্ট: 1234)</p>
     <input type="password" id="unlockPinInput" placeholder="পিন কোড লিখুন" style="text-align:center; font-size:20px; letter-spacing:5px; margin-bottom:15px;" maxlength="6">
     <button class="btn" style="width:100%;" onclick="verifyPin()">আনলক করুন</button>
   </div>
@@ -129,14 +129,14 @@ th{background:#f7f9fb}
 </div>
 
 <section id="dashboard" class="section active">
-  <div class="cardgrid">
+  <div class="cardgrid" style="grid-template-columns:repeat(3,1fr);">
     <div class="card"><div class="label">মোট রোগী</div><div class="value" id="cPatients">0</div></div>
     <div class="card"><div class="label">চলতি সেশন সম্পন্ন</div><div class="value" id="cCompletedSessions">0</div></div>
     <div class="card"><div class="label">মোট বকেয়া রোগী</div><div class="value" id="cDuePatients">0</div></div>
   </div>
   <div class="panel">
     <h3>সাম্প্রতিক পেমেন্ট ও সেশন</h3>
-    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>Patient ID</th><th>রোগী</th><th>মোবাইল</th><th>সেশন</th><th>টাকা</th></tr></thead><tbody id="recent"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>Patient ID</th><th>রোগী</th><th>মোবাইল</th><th>সেশন</th><th>টাকা</th><th>ডিভাইস ও তথ্য</th></tr></thead><tbody id="recent"></tbody></table></div>
   </div>
 </section>
 
@@ -146,7 +146,7 @@ th{background:#f7f9fb}
       <input id="patientSearch" placeholder="Patient ID, নাম বা মোবাইল দিয়ে খুঁজুন..." oninput="renderPatients()">
       <button class="btn" onclick="openPatient()">+ রোগী যোগ করুন</button>
     </div>
-    <div class="tablewrap"><table><thead><tr><th>Patient ID</th><th>নাম</th><th>মোবাইল</th><th>সমস্যা</th><th>ফি</th><th>পরিশোধ</th><th>বকেয়া</th><th>সেশন</th><th>অ্যাকশন</th></tr></thead><tbody id="patientsTable"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Patient ID</th><th>নাম</th><th>মোবাইল</th><th>সমস্যা</th><th>ফি</th><th>পরিশোধ</th><th>বকেয়া</th><th>সেশন</th><th>ইনপুট ডিভাইস</th><th>অ্যাকশন</th></tr></thead><tbody id="patientsTable"></tbody></table></div>
   </div>
 </section>
 
@@ -164,17 +164,49 @@ th{background:#f7f9fb}
   </div>
   <div class="panel">
     <h3>পেমেন্ট হিসাব</h3>
-    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>Patient ID</th><th>রোগী</th><th>মোবাইল</th><th>সেশন</th><th>টাকা</th><th>নোট</th><th></th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>Patient ID</th><th>রোগী</th><th>মোবাইল</th><th>সেশন</th><th>টাকা</th><th>নোট</th><th>ইনপুট ডিভাইস</th><th></th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
   </div>
 </section>
 
 <section id="finance" class="section">
-  <div class="cardgrid" style="grid-template-columns:repeat(4,1fr); margin-bottom:16px;">
+  <div class="panel" style="background:#eef4f9; border:1px solid #d0deec; margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+      <h3 style="margin:0; color:#173b57;">🔍 আর্থিক হিসাব ফিল্টার</h3>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="btn2" id="modeMonthlyBtn" onclick="setFinanceMode('monthly')" style="background:#173b57; color:#fff;">রানিং / নির্দিষ্ট মাস</button>
+        <button class="btn2" id="modeYearlyBtn" onclick="setFinanceMode('yearly')">নির্দিষ্ট বছর</button>
+        <button class="btn2" id="modeCustomBtn" onclick="setFinanceMode('custom')">কাস্টম তারিখ</button>
+        <button class="btn2" id="modeAllBtn" onclick="setFinanceMode('all')">সকল সময় (All Time)</button>
+      </div>
+    </div>
+    
+    <div class="formgrid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="field" id="divMonthFilter">
+        <label>মাস নির্বাচন করুন</label>
+        <input type="month" id="filterMonthInput" onchange="renderFinanceSection()">
+      </div>
+      <div class="field" id="divYearFilter" style="display:none;">
+        <label>বছর লিখুন (যেমন: 2026)</label>
+        <input type="number" id="filterYearInput" placeholder="2026" oninput="renderFinanceSection()">
+      </div>
+      <div class="field" id="divCustomStart" style="display:none;">
+        <label>শুরুর তারিখ</label>
+        <input type="date" id="filterStartDate" onchange="renderFinanceSection()">
+      </div>
+      <div class="field" id="divCustomEnd" style="display:none;">
+        <label>শেষের তারিখ</label>
+        <input type="date" id="filterEndDate" onchange="renderFinanceSection()">
+      </div>
+    </div>
+  </div>
+
+  <div class="cardgrid" style="margin-bottom:16px;">
     <div class="card"><div class="label">মোট আয়</div><div class="value" id="cIncome">৳0</div></div>
     <div class="card"><div class="label">Patient Payment</div><div class="value" id="cPatientIncome">৳0</div></div>
     <div class="card"><div class="label">মোট খরচ</div><div class="value" id="cExpense">৳0</div></div>
     <div class="card"><div class="label">বর্তমান ব্যালেন্স</div><div class="value" id="cBalance">৳0</div></div>
   </div>
+  
   <div class="panel">
     <h3>অন্যান্য আয় / খরচ যোগ করুন</h3>
     <div class="formgrid">
@@ -190,12 +222,12 @@ th{background:#f7f9fb}
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
       <h3 style="margin:0;">আয়-খরচের তালিকা</h3>
       <div style="display:flex; gap:6px;">
-        <button class="btn2" id="filterAll" onclick="setFinanceFilter('all')" style="background:#173b57; color:#fff;">সব দেখুন</button>
-        <button class="btn2" id="filterIncome" onclick="setFinanceFilter('income')">🟢 শুধু আয়</button>
-        <button class="btn2" id="filterExpense" onclick="setFinanceFilter('expense')">🔴 শুধু খরচ</button>
+        <button class="btn2" id="filterAll" onclick="setFinanceTypeFilter('all')" style="background:#173b57; color:#fff;">সব দেখুন</button>
+        <button class="btn2" id="filterIncome" onclick="setFinanceTypeFilter('income')">🟢 শুধু আয়</button>
+        <button class="btn2" id="filterExpense" onclick="setFinanceTypeFilter('expense')">🔴 শুধু খরচ</button>
       </div>
     </div>
-    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>বিবরণ</th><th>টাকা</th><th></th></tr></thead><tbody id="financeTable"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>বিবরণ</th><th>টাকা</th><th>ইনপুট ডিভাইস</th><th></th></tr></thead><tbody id="financeTable"></tbody></table></div>
   </div>
 
   <div class="panel">
@@ -278,10 +310,25 @@ th{background:#f7f9fb}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+function checkDailyPinLock() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const lastUnlockDate = localStorage.getItem('last_unlock_date');
+    
+    if(lastUnlockDate !== todayStr) {
+        document.getElementById('pinLockScreen').classList.remove('hidden');
+        setTimeout(() => { document.getElementById('unlockPinInput').focus(); }, 100);
+    } else {
+        document.getElementById('pinLockScreen').classList.add('hidden');
+    }
+}
+checkDailyPinLock();
+
 function verifyPin() {
     const enteredPin = document.getElementById('unlockPinInput').value;
     const savedPin = localStorage.getItem('app_security_pin') || '1234';
     if(enteredPin === savedPin) {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        localStorage.setItem('last_unlock_date', todayStr);
         document.getElementById('pinLockScreen').classList.add('hidden');
     } else {
         alert('ভুল পিন কোড! আবার চেষ্টা করুন।');
@@ -289,7 +336,6 @@ function verifyPin() {
     }
 }
 
-// কিবোর্ডের এন্টার (Enter) বাটন হ্যান্ডেল করার জন্য ইভেন্ট লিসেনার
 document.getElementById('unlockPinInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         verifyPin();
@@ -299,7 +345,6 @@ document.getElementById('unlockPinInput').addEventListener('keypress', function(
 function checkFinanceAccess(btn) {
     document.getElementById('financePinInput').value = '';
     document.getElementById('financePinScreen').classList.remove('hidden');
-    // সেকশন খোলার সাথে সাথে ফাইন্যান্স পিন ইনপুট বক্সে ফোকাস করে দেওয়া
     setTimeout(() => {
         document.getElementById('financePinInput').focus();
     }, 100);
@@ -317,7 +362,6 @@ function verifyFinancePin() {
     }
 }
 
-// ফাইন্যান্স পিন বক্সে এন্টার (Enter) বাটন হ্যান্ডেল করার জন্য ইভেন্ট লিসেনার
 document.getElementById('financePinInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         verifyFinancePin();
@@ -402,10 +446,22 @@ const dbRef = firebase.database().ref('physio_chamber_data');
 
 let db={patients:[],payments:[],finance:[]};
 let editId=null;
-let currentFinanceFilter = 'all';
+let currentFinanceTypeFilter = 'all';
+let currentFinanceMode = 'monthly';
 
 const money=n=>'৳'+Number(n||0).toLocaleString('en-IN');
 const today=()=>new Date().toISOString().slice(0,10);
+
+// স্বয়ংক্রিয়ভাবে ডিভাইস শনাক্ত করার ফাংশন
+function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    let device = "Computer/PC";
+    if (/android|iphone|ipad|ipod|mobile/i.test(ua)) {
+        device = "Mobile Phone";
+    }
+    const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return `${device} (${timeStr})`;
+}
 
 dbRef.on('value', (snapshot) => {
     const data = snapshot.val();
@@ -459,10 +515,11 @@ function closeModal(){document.getElementById('modal').classList.add('hidden');e
 function savePatient(){
  const name=pName.value.trim(), phone=pPhone.value.trim();
  if(!name||!phone){alert('রোগীর নাম ও মোবাইল নম্বর দিন।');return}
+ const deviceInfo = getDeviceInfo(); // কে কোন ডিভাইস থেকে দিলো রেকর্ড হচ্ছে
  const obj={
    patientId:pId.value, name, phone, age:pAge.value, problem:pProblem.value, 
    fee:Number(pFee.value||0), totalSessions:Number(pTotalSessions.value||0), 
-   address:pAddress.value, note:pNote.value
+   address:pAddress.value, note:pNote.value, addedBy: deviceInfo
  };
  if(editId) Object.assign(db.patients.find(x=>x.id===editId),obj);
  else db.patients.push({id:id(),createdAt:today(),...obj});
@@ -522,13 +579,14 @@ function renderPatients(){
     <td>${money(paid)}</td>
     <td><span class="badge ${due?'red':''}">${money(due)}</span></td>
     <td><b>${completedSessions}</b> / ${totalSess}</td>
+    <td><span class="small" style="color:#0284c7; font-weight:600;">${esc(p.addedBy || 'Direct / Old')}</span></td>
     <td><div class="actions">
       <button class="mini-wa" onclick="openWhatsApp('${esc(p.phone)}','${esc(p.name)}',${due})">WA</button>
       <button class="mini-btn" onclick="openPatient('${p.id}')">Edit</button>
       <button class="mini-danger" onclick="deletePatient('${p.id}')">Del</button>
     </div></td>
   </tr>`
- }).join('')||'<tr><td colspan="9">কোনো রোগী নেই।</td></tr>';
+ }).join('')||'<tr><td colspan="10">কোনো রোগী নেই।</td></tr>';
 }
 
 function renderMarketingTable() {
@@ -553,7 +611,8 @@ function deletePatient(pid){
 function addPayment(){
  const pid=payPatient.value, amount=Number(payAmount.value||0), sessions=Number(paySessions.value||0);
  if(!pid||(amount<=0 && sessions<=0)){alert('রোগী এবং সঠিক টাকার পরিমাণ অথবা সেশন সংখ্যা দিন।');return}
- db.payments.push({id:id(), patientId:pid, date:payDate.value||today(), amount, sessions, note:payNote.value});
+ const deviceInfo = getDeviceInfo();
+ db.payments.push({id:id(), patientId:pid, date:payDate.value||today(), amount, sessions, note:payNote.value, addedBy: deviceInfo});
  payAmount.value=''; paySessions.value=''; payNote.value=''; saveData();
 }
 
@@ -564,9 +623,10 @@ function renderPayments(){
  return `<tr>
    <td>${x.date}</td><td>${esc(p.patientId||'-')}</td><td>${esc(p.name||'Deleted')}</td><td>${esc(p.phone||'-')}</td>
    <td><span class="badge">${x.sessions||0} সেশন</span></td><td><b>${money(x.amount)}</b></td><td>${esc(x.note||'-')}</td>
+   <td><span class="small" style="color:#0284c7; font-weight:600;">${esc(x.addedBy || 'Direct / Old')}</span></td>
    <td><button class="mini-danger" onclick="deletePayment('${x.id}')">Del</button></td>
  </tr>`
- }).join('')||'<tr><td colspan="8">কোনো পেমেন্ট নেই।</td></tr>';
+ }).join('')||'<tr><td colspan="9">কোনো পেমেন্ট নেই।</td></tr>';
 }
 
 function deletePayment(x){if(confirm('পেমেন্ট মুছবেন?')){db.payments=db.payments.filter(y=>y.id!==x);saveData()}}
@@ -574,12 +634,68 @@ function deletePayment(x){if(confirm('পেমেন্ট মুছবেন?'
 function addFinance(){
  const amount=Number(finAmount.value||0), desc=finDesc.value.trim();
  if(amount<=0||!desc){alert('টাকার পরিমাণ ও বিবরণ দিন।');return}
- db.finance.push({id:id(), type:finType.value, date:finDate.value||today(), amount, desc});
+ const deviceInfo = getDeviceInfo();
+ db.finance.push({id:id(), type:finType.value, date:finDate.value||today(), amount, desc, addedBy: deviceInfo});
  finAmount.value=''; finDesc.value=''; saveData();
 }
 
-function setFinanceFilter(type) {
-    currentFinanceFilter = type;
+function setFinanceMode(mode) {
+    currentFinanceMode = mode;
+    const modes = ['monthly', 'yearly', 'custom', 'all'];
+    modes.forEach(m => {
+        const btn = document.getElementById(`mode${m.charAt(0).toUpperCase() + m.slice(1)}Btn`);
+        if(btn) {
+            if(m === mode) {
+                btn.style.background = '#173b57';
+                btn.style.color = '#fff';
+            } else {
+                btn.style.background = '#e9eef3';
+                btn.style.color = '#263445';
+            }
+        }
+    });
+
+    document.getElementById('divMonthFilter').style.display = (mode === 'monthly') ? 'block' : 'none';
+    document.getElementById('divYearFilter').style.display = (mode === 'yearly') ? 'block' : 'none';
+    document.getElementById('divCustomStart').style.display = (mode === 'custom') ? 'block' : 'none';
+    document.getElementById('divCustomEnd').style.display = (mode === 'custom') ? 'block' : 'none';
+    
+    renderFinanceSection();
+}
+
+function getFilteredData() {
+    let filteredPayments = db.payments.slice();
+    let filteredFinance = db.finance.slice();
+
+    if (currentFinanceMode === 'monthly') {
+        const m = document.getElementById('filterMonthInput').value;
+        if (m) {
+            filteredPayments = filteredPayments.filter(x => x.date.startsWith(m));
+            filteredFinance = filteredFinance.filter(x => x.date.startsWith(m));
+        }
+    } else if (currentFinanceMode === 'yearly') {
+        const y = document.getElementById('filterYearInput').value;
+        if (y) {
+            filteredPayments = filteredPayments.filter(x => x.date.startsWith(y));
+            filteredFinance = filteredFinance.filter(x => x.date.startsWith(y));
+        }
+    } else if (currentFinanceMode === 'custom') {
+        const start = document.getElementById('filterStartDate').value;
+        const end = document.getElementById('filterEndDate').value;
+        if (start) {
+            filteredPayments = filteredPayments.filter(x => x.date >= start);
+            filteredFinance = filteredFinance.filter(x => x.date >= start);
+        }
+        if (end) {
+            filteredPayments = filteredPayments.filter(x => x.date <= end);
+            filteredFinance = filteredFinance.filter(x => x.date <= end);
+        }
+    }
+    return { filteredPayments, filteredFinance };
+}
+
+function setFinanceTypeFilter(type) {
+    currentFinanceTypeFilter = type;
     document.getElementById('filterAll').style.background = type === 'all' ? '#173b57' : '#e9eef3';
     document.getElementById('filterAll').style.color = type === 'all' ? '#fff' : '#263445';
     
@@ -589,33 +705,44 @@ function setFinanceFilter(type) {
     document.getElementById('filterExpense').style.background = type === 'expense' ? '#b42318' : '#e9eef3';
     document.getElementById('filterExpense').style.color = type === 'expense' ? '#fff' : '#263445';
     
-    renderFinance();
+    renderFinanceTableOnly();
 }
 
-function renderFinance(){
- let filteredList = db.finance.slice();
- if(currentFinanceFilter === 'income') {
-     filteredList = filteredList.filter(x => x.type === 'income');
- } else if(currentFinanceFilter === 'expense') {
-     filteredList = filteredList.filter(x => x.type === 'expense');
- }
+function renderFinanceTableOnly() {
+    const { filteredPayments, filteredFinance } = getFilteredData();
+    
+    let combinedList = [
+        ...filteredPayments.map(p => {
+            const pat = db.patients.find(y => y.id === p.patientId) || {};
+            return {
+                id: p.id,
+                date: p.date,
+                type: 'income',
+                desc: `Patient Payment (${pat.name || 'Unknown'})`,
+                amount: Number(p.amount),
+                addedBy: p.addedBy || 'Direct / Old'
+            };
+        }),
+        ...filteredFinance
+    ];
 
- financeTable.innerHTML = filteredList.sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<tr>
-   <td>${x.date}</td>
-   <td><span class="badge ${x.type==='expense'?'red':''}">${x.type==='income'?'আয়':'খরচ'}</span></td>
-   <td>${esc(x.desc)}</td>
-   <td>${money(x.amount)}</td>
-   <td><button class="mini-danger" onclick="deleteFinance('${x.id}')">Del</button></td>
- </tr>`).join('')||'<tr><td colspan="5">কোনো রেকর্ড পাওয়া যায়নি।</td></tr>';
+    if(currentFinanceTypeFilter === 'income') {
+        combinedList = combinedList.filter(x => x.type === 'income');
+    } else if(currentFinanceTypeFilter === 'expense') {
+        combinedList = combinedList.filter(x => x.type === 'expense');
+    }
+
+    financeTable.innerHTML = combinedList.sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<tr>
+      <td>${x.date}</td>
+      <td><span class="badge ${x.type==='expense'?'red':''}">${x.type==='income'?'আয়':'খরচ'}</span></td>
+      <td>${esc(x.desc)}</td>
+      <td>${money(x.amount)}</td>
+      <td><span class="small" style="color:#0284c7; font-weight:600;">${esc(x.addedBy)}</span></td>
+      <td>${x.desc.startsWith('Patient Payment') ? '<span class="small">Payment Tab থেকে ডিলিট করুন</span>' : `<button class="mini-danger" onclick="deleteFinance('${x.id}')">Del</button>`}</td>
+    </tr>`).join('')||'<tr><td colspan="6">কোনো রেকর্ড পাওয়া যায়নি।</td></tr>';
 }
 
 function deleteFinance(x){if(confirm('রেকর্ড মুছবেন?')){db.finance=db.finance.filter(y=>y.id!==x);saveData()}}
-
-function totals(){
- const income=db.finance.filter(x=>x.type==='income').reduce((a,b)=>a+Number(b.amount),0)+db.payments.reduce((a,b)=>a+Number(b.amount),0);
- const expense=db.finance.filter(x=>x.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
- return {income,expense,balance:income-expense};
-}
 
 function renderDashboard(){
  cPatients.textContent = db.patients.length;
@@ -630,18 +757,25 @@ function renderDashboard(){
 
  recent.innerHTML=db.payments.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8).map(x=>{
    const p=db.patients.find(y=>y.id===x.patientId)||{};
-   return `<tr><td>${x.date}</td><td>${esc(p.patientId||'-')}</td><td>${esc(p.name||'Deleted')}</td><td>${esc(p.phone||'-')}</td><td><span class="badge">${x.sessions||0} সেশন</span></td><td><b>${money(x.amount)}</b></td></tr>`
- }).join('')||'<tr><td colspan="6">কোনো পেমেন্ট নেই।</td></tr>';
+   return `<tr><td>${x.date}</td><td>${esc(p.patientId||'-')}</td><td>${esc(p.name||'Deleted')}</td><td>${esc(p.phone||'-')}</td><td><span class="badge">${x.sessions||0} সেশন</span></td><td><b>${money(x.amount)}</b></td><td><span class="small" style="color:#0284c7; font-weight:600;">${esc(x.addedBy || 'Direct / Old')}</span></td></tr>`
+ }).join('')||'<tr><td colspan="7">কোনো পেমেন্ট নেই।</td></tr>';
 }
 
 function renderFinanceSection() {
- const t=totals();
- const patientIncome=db.payments.reduce((a,b)=>a+Number(b.amount),0);
- cPatientIncome.textContent=money(patientIncome);
- cIncome.textContent=money(t.income);
- cExpense.textContent=money(t.expense);
- cBalance.textContent=money(t.balance);
- renderFinance();
+ const { filteredPayments, filteredFinance } = getFilteredData();
+ 
+ const patientIncome = filteredPayments.reduce((a,b)=>a+Number(b.amount),0);
+ const otherIncome = filteredFinance.filter(x=>x.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+ const totalInc = patientIncome + otherIncome;
+ const totalExp = filteredFinance.filter(x=>x.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+ const balance = totalInc - totalExp;
+
+ cPatientIncome.textContent = money(patientIncome);
+ cIncome.textContent = money(totalInc);
+ cExpense.textContent = money(totalExp);
+ cBalance.textContent = money(balance);
+
+ renderFinanceTableOnly();
 }
 
 function monthReport(){
@@ -674,10 +808,12 @@ function restoreBackup(e){
  const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.patients||!x.payments||!x.finance)throw 0;db=x;saveData();alert('Backup restore সফল হয়েছে।')}catch{alert('Backup ফাইল সঠিক নয়।')}};r.readAsText(file);
 }
 
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;ummer'[m]||m}))}
 function renderAll(){renderPatients();renderPayments();renderDashboard();renderFinanceSection();renderMarketingTable();}
 
 payDate.value=today();finDate.value=today();reportYear.value=new Date().getFullYear();reportMonth.value=today().slice(0,7);
+filterMonthInput.value=today().slice(0,7);
+filterYearInput.value=new Date().getFullYear();
 </script>
 </body>
 </html>
