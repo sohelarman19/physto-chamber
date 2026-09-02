@@ -33,6 +33,7 @@ input,select,textarea{border:1px solid #d6dce5;border-radius:9px;padding:10px;ba
 .btn{background:#1e7a56;color:#fff}
 .btn2{background:#e9eef3;color:#263445}
 .btn-wa{background:#25d366;color:#fff}
+.btn-mode { background: #b45309; color: #fff; font-weight:700; }
 
 .mini-btn { background: transparent; color: #98a2b3; border: 1px solid #eaecf0; padding: 3px 7px; font-size: 11px; border-radius: 6px; }
 .mini-btn:hover { background: #f8fafc; color: #344054; }
@@ -67,6 +68,15 @@ th{background:#f7f9fb}
   box-shadow: 0 10px 30px rgba(0,0,0,0.35); z-index: 9999; display: flex; align-items: center;
   justify-content: space-between; gap: 15px; border: 2px solid #25d366;
   transition: opacity 0.5s ease;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  #moneyReceiptArea, #moneyReceiptArea * { visibility: visible; }
+  #moneyReceiptArea { 
+    position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; padding: 20px; background: #fff; display: block !important;
+  }
+  .no-print { display: none !important; }
 }
 
 @media(max-width:800px){
@@ -105,7 +115,7 @@ th{background:#f7f9fb}
   </div>
   <div style="display:flex; gap:8px;">
     <button class="btn" style="background:#25d366; color:#000; font-weight:700; padding:8px 14px;" onclick="installApp()">ইনস্টল</button>
-    <button class="mini-btn" style="color:#fff; border-color:rgba(255,255,255,0.3); padding:8px 10px;" onclick="document.getElementById('installBanner').classList.add('hidden')">✕</button>
+    <button id="closeBannerBtn" class="mini-btn" style="color:#fff; border-color:rgba(255,255,255,0.3); padding:8px 10px;">✕</button>
   </div>
 </div>
 
@@ -113,17 +123,17 @@ th{background:#f7f9fb}
   <button class="active" onclick="show('dashboard',this)">🏠 Dashboard</button>
   <button onclick="show('patients',this)">👤 Patients</button>
   <button onclick="show('payments',this)">💳 Payments</button>
-  <button onclick="checkFinanceAccess(this)">🔒 আর্থিক হিসাব</button>
-  <button onclick="show('marketing',this)">📢 মার্কেটিং</button>
-  <button onclick="show('backup',this)">💾 Backup</button>
+  <button class="full-mode-only" onclick="checkFinanceAccess(this)">🔒 আর্থিক হিসাব</button>
+  <button class="full-mode-only" onclick="show('marketing',this)">📢 মার্কেটিং</button>
+  <button class="full-mode-only" onclick="show('backup',this)">💾 Backup</button>
+  <button class="btn-mode" id="modeToggleBtn" onclick="toggleFullMode()">📱 লাইট মোড</button>
+  <button class="btn-wa" style="padding:6px 12px; font-weight:700; font-size:13px;" onclick="installApp()">📱 ইনস্টল</button>
 </nav>
 
 <main class="main">
 <div class="top">
-  <div><h1>Physiotherapy Chamber Manager</h1><div class="small">অনলাইন সিংক ও সিকিউরিটি সুরক্ষিত</div></div>
+  <div><h1>Physiotherapy Chamber Manager</h1><div class="small" id="modeStatusText">অনলাইন সিংক ও সিকিউরিটি সুরক্ষিত</div></div>
   <div style="display:flex;gap:8px; flex-wrap:wrap;">
-    <button class="btn2" onclick="openChangePinModal()">🔒 পিন পরিবর্তন</button>
-    <button id="installBtnHeader" class="btn btn-wa" onclick="installApp()">📱 ইনস্টল</button>
     <button class="btn" onclick="openPatient()">+ নতুন রোগী</button>
   </div>
 </div>
@@ -136,7 +146,7 @@ th{background:#f7f9fb}
   </div>
   <div class="panel">
     <h3>সাম্প্রতিক পেমেন্ট ও সেশন</h3>
-    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>Patient ID</th><th>রোগী</th><th>মোবাইল</th><th>সেশন</th><th>টাকা</th><th>ডিভাইস ও তথ্য</th></tr></thead><tbody id="recent"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>Patient ID</th><th>রোগী</th><th>মোবাইল</th><th>সেশন</th><th>টাকা</th><th>সার্ভিস ও তথ্য</th></tr></thead><tbody id="recent"></tbody></table></div>
   </div>
 </section>
 
@@ -146,7 +156,7 @@ th{background:#f7f9fb}
       <input id="patientSearch" placeholder="Patient ID, নাম বা মোবাইল দিয়ে খুঁজুন..." oninput="renderPatients()">
       <button class="btn" onclick="openPatient()">+ রোগী যোগ করুন</button>
     </div>
-    <div class="tablewrap"><table><thead><tr><th>Patient ID</th><th>নাম</th><th>মোবাইল</th><th>সমস্যা</th><th>ফি</th><th>পরিশোধ</th><th>বকেয়া</th><th>সেশন</th><th>ইনপুট ডিভাইস</th><th>অ্যাকশন</th></tr></thead><tbody id="patientsTable"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Patient ID</th><th>নাম</th><th>মোবাইল</th><th>সমস্যা</th><th>ফি</th><th>পরিশোধ</th><th>বকেয়া</th><th>সেশন</th><th class="full-mode-only">ইনপুট ডিভাইস</th><th>অ্যাকশন</th></tr></thead><tbody id="patientsTable"></tbody></table></div>
   </div>
 </section>
 
@@ -157,14 +167,29 @@ th{background:#f7f9fb}
       <div class="field"><label>রোগী</label><select id="payPatient"></select></div>
       <div class="field"><label>তারিখ</label><input type="date" id="payDate"></div>
       <div class="field"><label>পরিশোধের টাকা</label><input type="number" id="payAmount" min="0"></div>
-      <div class="field"><label>এই পেমেন্টে সেশন সংখ্যা</label><input type="number" id="paySessions" min="0" placeholder="যেমন: ৫"></div>
-      <div class="field full"><label>নোট</label><textarea id="payNote" rows="2"></textarea></div>
+      <div class="field"><label>সেশন সংখ্যা</label><input type="number" id="paySessions" min="0" placeholder="যেমন: ১"></div>
+      
+      <!-- লাইট মোডে লুকানো থাকবে, ফুল মোডে দেখাবে -->
+      <div class="field full full-mode-only">
+        <label>মূল সার্ভিস নির্বাচন</label>
+        <select id="payServiceType">
+          <option value="Physiotherapy" selected>Physiotherapy (ফিজিওথেরাপি)</option>
+          <option value="Dry Needling">Dry Needling (ড্রাই নিডলিং)</option>
+          <option value="UST">UST (ইউএসটি)</option>
+          <option value="IRR">IRR (আইআরআর)</option>
+          <option value="Traction">Traction (ট্র্যাকশন)</option>
+          <option value="IFT">IFT (আইএফটি)</option>
+          <option value="Other">Other (অন্যান্য)</option>
+        </select>
+      </div>
+
+      <div class="field full full-mode-only"><label>অতিরিক্ত নোট / বিবরণ</label><input id="payNote" placeholder="যেমন: অতিরিক্ত কোনো বিশেষ নির্দেশনা বা বিবরণ"></div>
     </div>
     <br><button class="btn" onclick="addPayment()">পেমেন্ট ও সেশন সেভ করুন</button>
   </div>
   <div class="panel">
     <h3>পেমেন্ট হিসাব</h3>
-    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>Patient ID</th><th>রোগী</th><th>মোবাইল</th><th>সেশন</th><th>টাকা</th><th>নোট</th><th>ইনপুট ডিভাইস</th><th></th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>Patient ID</th><th>রোগী</th><th>মোবাইল</th><th>সেশন</th><th>টাকা</th><th>সার্ভিস ও নোট</th><th class="full-mode-only">ইনপুট ডিভাইস</th><th>অ্যাকশন</th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
   </div>
 </section>
 
@@ -227,7 +252,7 @@ th{background:#f7f9fb}
         <button class="btn2" id="filterExpense" onclick="setFinanceTypeFilter('expense')">🔴 শুধু খরচ</button>
       </div>
     </div>
-    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>বিবরণ</th><th>টাকা</th><th>ইনপুট ডিভাইস</th><th></th></tr></thead><tbody id="financeTable"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>বিবরণ</th><th>টাকা</th><th class="full-mode-only">ইনপুট ডিভাইস</th><th></th></tr></thead><tbody id="financeTable"></tbody></table></div>
   </div>
 
   <div class="panel">
@@ -268,10 +293,13 @@ th{background:#f7f9fb}
 
 <section id="backup" class="section">
   <div class="panel">
-    <h3>Backup / Restore</h3>
+    <h3>Backup / Restore & Security</h3>
     <p>ডেটা ফায়ারবেস ক্লাউডে অনলাইনে সংরক্ষিত রয়েছে। নিরাপত্তার জন্য JSON ব্যাকআপ ডাউনলোড করে রাখতে পারেন।</p>
-    <button class="btn" onclick="downloadBackup()">⬇ Backup Download</button>
-    <button class="btn2" onclick="document.getElementById('restoreFile').click()">⬆ Restore</button>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+      <button class="btn" onclick="downloadBackup()">⬇ Backup Download</button>
+      <button class="btn2" onclick="document.getElementById('restoreFile').click()">⬆ Restore</button>
+      <button class="btn2" onclick="openChangePinModal()">🔒 পিন পরিবর্তন</button>
+    </div>
     <input class="hidden" id="restoreFile" type="file" accept=".json" onchange="restoreBackup(event)">
   </div>
 </section>
@@ -293,6 +321,19 @@ th{background:#f7f9fb}
 <button class="btn2" onclick="closeModal()">বন্ধ করুন</button>
 </div>
 
+<div id="patientDetailModal" class="panel hidden" style="position:fixed;inset:5% 5%;max-width:850px;margin:auto;z-index:20000;box-shadow:0 10px 50px #0006; overflow-y:auto; background:#fff;">
+  <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:15px;" class="no-print">
+    <h3 id="pdModalTitle" style="margin:0; color:#173b57;">রোগীর বিস্তারিত হিসাব ও মানি রিসিপ্ট</h3>
+    <button class="mini-btn" onclick="closePatientDetailModal()" style="font-size:16px; padding:4px 10px;">✕</button>
+  </div>
+  
+  <div id="pdModalContent"></div>
+
+  <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;" class="no-print">
+    <button class="btn2" onclick="closePatientDetailModal()">বন্ধ করুন</button>
+  </div>
+</div>
+
 <div id="pinModal" class="panel hidden" style="position:fixed;inset:20% 10%;max-width:400px;margin:auto;z-index:10000;box-shadow:0 10px 50px #0004">
 <h3>🔒 পিন কোড পরিবর্তন করুন</h3>
 <div class="formgrid" style="grid-template-columns:1fr;">
@@ -310,6 +351,38 @@ th{background:#f7f9fb}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+let isUserFullMode = localStorage.getItem('user_full_mode') === 'true';
+
+function updateModeUI() {
+    const btn = document.getElementById('modeToggleBtn');
+    const fullModeElements = document.querySelectorAll('.full-mode-only');
+    
+    if(isUserFullMode) {
+        btn.textContent = '💻 ফুল মোড (Active)';
+        btn.style.background = '#047857';
+        fullModeElements.forEach(el => el.style.display = '');
+        document.getElementById('modeStatusText').textContent = 'ফুল মোড অন আছে (সব ফিচার দৃশ্যমান)';
+    } else {
+        btn.textContent = '📱 লাইট মোড (Active)';
+        btn.style.background = '#b45309';
+        fullModeElements.forEach(el => el.style.display = 'none');
+        document.getElementById('modeStatusText').textContent = 'লাইট মোড অন আছে (৪টি মূল বাটন)';
+    }
+}
+
+function toggleFullMode() {
+    isUserFullMode = !isUserFullMode;
+    localStorage.setItem('user_full_mode', isUserFullMode);
+    updateModeUI();
+    
+    // লাইট মোডে চলে গেলে যদি সিক্রেট ট্যাবে (যেমন finance) থাকে, তবে ড্যাশবোর্ডে ফিরিয়ে আনবে
+    const currentActive = document.querySelector('.section.active');
+    if(!isUserFullMode && currentActive && ['finance', 'marketing', 'backup'].includes(currentActive.id)) {
+        show('dashboard', document.querySelectorAll('.topnav button')[0]);
+    }
+    renderAll();
+}
+
 function checkDailyPinLock() {
     const todayStr = new Date().toISOString().slice(0, 10);
     const lastUnlockDate = localStorage.getItem('last_unlock_date');
@@ -355,6 +428,8 @@ function verifyFinancePin() {
     const savedFinPin = localStorage.getItem('finance_security_pin') || '5678';
     if(entered === savedFinPin) {
         document.getElementById('financePinScreen').classList.add('hidden');
+        // 'আর্থিক হিসাব' বাটনটি হলো চতুর্থ দৃশ্যমান বা ইনডেক্স ৩
+        const financeBtnIndex = isUserFullMode ? 3 : 3; 
         show('finance', document.querySelectorAll('.topnav button')[3]);
     } else {
         alert('ভুল ফাইন্যান্স পিন!');
@@ -417,6 +492,16 @@ setTimeout(() => {
     }
 }, 10000);
 
+const closeBannerBtn = document.getElementById('closeBannerBtn');
+if(closeBannerBtn) {
+    closeBannerBtn.addEventListener('click', () => {
+        const banner = document.getElementById('installBanner');
+        if(banner) {
+            banner.classList.add('hidden');
+        }
+    });
+}
+
 function installApp() {
     if (deferredPrompt) {
         deferredPrompt.prompt();
@@ -452,7 +537,6 @@ let currentFinanceMode = 'monthly';
 const money=n=>'৳'+Number(n||0).toLocaleString('en-IN');
 const today=()=>new Date().toISOString().slice(0,10);
 
-// স্বয়ংক্রিয়ভাবে ডিভাইস শনাক্ত করার ফাংশন
 function getDeviceInfo() {
     const ua = navigator.userAgent;
     let device = "Computer/PC";
@@ -491,8 +575,8 @@ function nextPatientId(){
 function show(id,btn){
  document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
  document.getElementById(id).classList.add('active');
- document.querySelectorAll('.topnav button').forEach(x=>x.classList.remove('active'));
- if(btn)btn.classList.add('active');
+ document.querySelectorAll('.topnav button').forEach(x=>{if(!x.classList.contains('btn-wa') && !x.classList.contains('btn-mode'))x.classList.remove('active')});
+ if(btn && !btn.classList.contains('btn-wa') && !btn.classList.contains('btn-mode'))btn.classList.add('active');
  renderAll();
 }
 
@@ -515,7 +599,7 @@ function closeModal(){document.getElementById('modal').classList.add('hidden');e
 function savePatient(){
  const name=pName.value.trim(), phone=pPhone.value.trim();
  if(!name||!phone){alert('রোগীর নাম ও মোবাইল নম্বর দিন।');return}
- const deviceInfo = getDeviceInfo(); // কে কোন ডিভাইস থেকে দিলো রেকর্ড হচ্ছে
+ const deviceInfo = getDeviceInfo();
  const obj={
    patientId:pId.value, name, phone, age:pAge.value, problem:pProblem.value, 
    fee:Number(pFee.value||0), totalSessions:Number(pTotalSessions.value||0), 
@@ -530,6 +614,108 @@ function ensurePatientIds(){
  let max=0;
  db.patients.forEach(p=>{const m=String(p.patientId||'').match(/^P-(\d+)$/);if(m)max=Math.max(max,Number(m[1]));});
  db.patients.forEach(p=>{if(!p.patientId){p.patientId='P-'+String(++max).padStart(4,'0');}});
+}
+
+function openPatientDetail(pid) {
+    const p = db.patients.find(x => x.id === pid);
+    if(!p) return;
+    
+    const pPayments = db.payments.filter(x => x.patientId === pid).sort((a,b)=>b.date.localeCompare(a.date));
+    const totalPaid = pPayments.reduce((a,b)=>a+Number(b.amount),0);
+    const totalCompletedSess = pPayments.reduce((a,b)=>a+Number(b.sessions||0),0);
+    const due = Math.max(0, Number(p.fee) - totalPaid);
+
+    let html = `
+        <div style="background:#f0f4f8; padding:12px; border-radius:10px; margin-bottom:15px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;" class="no-print">
+            <label style="font-weight:bold; font-size:13px; color:#173b57;">রিসিপ্টের তারিখ (কাস্টম ডেট):</label>
+            <input type="date" id="receiptCustomDate" value="${today()}" style="width:auto; padding:6px 10px; font-weight:bold;">
+            <span class="small" style="color:#555;">(প্রিন্ট করার আগে তারিখ পরিবর্তন করতে চাইলে এখান থেকে করতে পারেন)</span>
+        </div>
+
+        <div id="moneyReceiptArea" style="background:#fff; border:2px dashed #173b57; padding:20px; border-radius:12px;">
+            <div style="text-align:center; border-bottom:2px solid #173b57; padding-bottom:10px; margin-bottom:15px;">
+                <h2 style="margin:0; color:#173b57;">PHYSIOTHERAPY CHAMBER</h2>
+                <div style="font-size:13px; color:#555;">প্রফেশনাল ফিজিওথেরাপি ও রিহ্যাবিলিটেশন সেন্টার</div>
+                <div style="margin-top:5px; font-size:16px; font-weight:bold; background:#173b57; color:#fff; display:inline-block; padding:4px 15px; border-radius:6px;">MONEY RECEIPT / পেমেন্ট রশিদ</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; font-size:14px; margin-bottom:15px;">
+                <div><b>Patient ID:</b> ${esc(p.patientId)}</div>
+                <div><b>তারিখ:</b> <span id="displayReceiptDate">${today()}</span></div>
+                <div><b>রোগীর নাম:</b> ${esc(p.name)}</div>
+                <div><b>মোবাইল:</b> ${esc(p.phone)}</div>
+                <div><b>বয়স:</b> ${esc(p.age || '-')}</div>
+                <div><b>সমস্যা/Diagnosis:</b> ${esc(p.problem || '-')}</div>
+            </div>
+            
+            <h4 style="margin:10px 0 5px 0; border-bottom:1px solid #ddd; padding-bottom:4px;">পেমেন্ট ও সেশন বিবরণী</h4>
+            <div class="tablewrap">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f0f4f8;"><th style="padding:8px; border:1px solid #ddd;">তারিখ</th><th style="padding:8px; border:1px solid #ddd;">সার্ভিস</th><th style="padding:8px; border:1px solid #ddd;">সেশন</th><th style="padding:8px; border:1px solid #ddd;">টাকা</th></tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    if(pPayments.length === 0) {
+        html += `<tr><td colspan="4" style="text-align:center; padding:10px; border:1px solid #ddd;">কোনো পেমেন্ট রেকর্ড নেই।</td></tr>`;
+    } else {
+        pPayments.forEach(pay => {
+            const sType = pay.serviceType || 'Physiotherapy';
+            html += `<tr>
+                <td style="padding:8px; border:1px solid #ddd;">${pay.date}</td>
+                <td style="padding:8px; border:1px solid #ddd;">${esc(sType)} ${pay.note ? '('.concat(esc(pay.note), ')') : ''}</td>
+                <td style="padding:8px; border:1px solid #ddd;">${pay.sessions || 0} টি</td>
+                <td style="padding:8px; border:1px solid #ddd;"><b>${money(pay.amount)}</b></td>
+            </tr>`;
+        });
+    }
+
+    html += `
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top:15px; background:#f9fafb; padding:12px; border-radius:8px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:14px;">
+                <div>মোট ফি: <b>${money(p.fee)}</b></div>
+                <div>মোট পরিশোধ: <b style="color:green;">${money(totalPaid)}</b></div>
+                <div>বর্তমান বকেয়া: <b style="color:${due>0?'red':'green'};">${money(due)}</b></div>
+                <div>মোট সেশন সম্পন্ন: <b>${totalCompletedSess} / ${p.totalSessions || 0} টি</b></div>
+            </div>
+
+            <div style="margin-top:35px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-size:12px; color:#666;">রোগীর স্বাক্ষর</div>
+                <div style="font-size:12px; color:#666; border-top:1px solid #333; padding-top:4px; text-align:center;">অথোরাইজড সিগনেচার</div>
+            </div>
+        </div>
+
+        <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;" class="no-print">
+            <button class="btn" onclick="triggerReceiptPrint()">🖨 মানি রিসিপ্ট প্রিন্ট করুন</button>
+            <button class="btn2" onclick="closePatientDetailModal()">বন্ধ করুন</button>
+        </div>
+    `;
+    
+    document.getElementById('pdModalContent').innerHTML = html;
+    document.getElementById('patientDetailModal').classList.remove('hidden');
+
+    const dateInput = document.getElementById('receiptCustomDate');
+    if(dateInput) {
+        dateInput.addEventListener('input', function() {
+            document.getElementById('displayReceiptDate').textContent = this.value;
+        });
+    }
+}
+
+function triggerReceiptPrint() {
+    const dateInput = document.getElementById('receiptCustomDate');
+    if(dateInput) {
+        document.getElementById('displayReceiptDate').textContent = dateInput.value;
+    }
+    window.print();
+}
+
+function closePatientDetailModal() {
+    document.getElementById('patientDetailModal').classList.add('hidden');
 }
 
 function openWhatsApp(phone, name, due, customText='') {
@@ -579,8 +765,9 @@ function renderPatients(){
     <td>${money(paid)}</td>
     <td><span class="badge ${due?'red':''}">${money(due)}</span></td>
     <td><b>${completedSessions}</b> / ${totalSess}</td>
-    <td><span class="small" style="color:#0284c7; font-weight:600;">${esc(p.addedBy || 'Direct / Old')}</span></td>
+    <td class="full-mode-only"><span class="small" style="color:#0284c7; font-weight:600;">${esc(p.addedBy || 'Direct / Old')}</span></td>
     <td><div class="actions">
+      <button class="btn2" style="padding:3px 7px; font-size:11px;" onclick="openPatientDetail('${p.id}')">Receipt & Detail</button>
       <button class="mini-wa" onclick="openWhatsApp('${esc(p.phone)}','${esc(p.name)}',${due})">WA</button>
       <button class="mini-btn" onclick="openPatient('${p.id}')">Edit</button>
       <button class="mini-danger" onclick="deletePatient('${p.id}')">Del</button>
@@ -610,20 +797,45 @@ function deletePatient(pid){
 
 function addPayment(){
  const pid=payPatient.value, amount=Number(payAmount.value||0), sessions=Number(paySessions.value||0);
+ 
+ // লাইট মোডে সার্ভিস ও নোট ডিফল্ট থাকবে, ফুল মোডে সিলেক্ট করা মান নিবে
+ const serviceEle = document.getElementById('payServiceType');
+ const noteEle = document.getElementById('payNote');
+ 
+ const serviceType = (serviceEle && serviceEle.value) ? serviceEle.value : 'Physiotherapy';
+ const noteText = (noteEle && noteEle.value) ? noteEle.value.trim() : '';
+ 
  if(!pid||(amount<=0 && sessions<=0)){alert('রোগী এবং সঠিক টাকার পরিমাণ অথবা সেশন সংখ্যা দিন।');return}
+ 
  const deviceInfo = getDeviceInfo();
- db.payments.push({id:id(), patientId:pid, date:payDate.value||today(), amount, sessions, note:payNote.value, addedBy: deviceInfo});
- payAmount.value=''; paySessions.value=''; payNote.value=''; saveData();
+ db.payments.push({
+     id:id(), 
+     patientId:pid, 
+     date:payDate.value||today(), 
+     amount, 
+     sessions, 
+     serviceType,
+     note: noteText, 
+     addedBy: deviceInfo
+ });
+ 
+ payAmount.value=''; 
+ paySessions.value=''; 
+ if(noteEle) noteEle.value=''; 
+ if(serviceEle) serviceEle.value='Physiotherapy';
+ saveData();
 }
 
 function renderPayments(){
  payPatient.innerHTML=db.patients.map(p=>`<option value="${p.id}">${esc(p.patientId||'')} — ${esc(p.name)} — ${esc(p.phone)}</option>`).join('');
  paymentsTable.innerHTML=db.payments.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>{
  const p=db.patients.find(y=>y.id===x.patientId)||{};
+ const sType = x.serviceType || 'Physiotherapy';
+ const fullNoteDisplay = x.note ? `<b>[${sType}]</b> ${esc(x.note)}` : `<b>[${sType}]</b>`;
  return `<tr>
    <td>${x.date}</td><td>${esc(p.patientId||'-')}</td><td>${esc(p.name||'Deleted')}</td><td>${esc(p.phone||'-')}</td>
-   <td><span class="badge">${x.sessions||0} সেশন</span></td><td><b>${money(x.amount)}</b></td><td>${esc(x.note||'-')}</td>
-   <td><span class="small" style="color:#0284c7; font-weight:600;">${esc(x.addedBy || 'Direct / Old')}</span></td>
+   <td><span class="badge">${x.sessions||0} সেশন</span></td><td><b>${money(x.amount)}</b></td><td>${fullNoteDisplay}</td>
+   <td class="full-mode-only"><span class="small" style="color:#0284c7; font-weight:600;">${esc(x.addedBy || 'Direct / Old')}</span></td>
    <td><button class="mini-danger" onclick="deletePayment('${x.id}')">Del</button></td>
  </tr>`
  }).join('')||'<tr><td colspan="9">কোনো পেমেন্ট নেই।</td></tr>';
@@ -737,7 +949,7 @@ function renderFinanceTableOnly() {
       <td><span class="badge ${x.type==='expense'?'red':''}">${x.type==='income'?'আয়':'খরচ'}</span></td>
       <td>${esc(x.desc)}</td>
       <td>${money(x.amount)}</td>
-      <td><span class="small" style="color:#0284c7; font-weight:600;">${esc(x.addedBy)}</span></td>
+      <td class="full-mode-only"><span class="small" style="color:#0284c7; font-weight:600;">${esc(x.addedBy)}</span></td>
       <td>${x.desc.startsWith('Patient Payment') ? '<span class="small">Payment Tab থেকে ডিলিট করুন</span>' : `<button class="mini-danger" onclick="deleteFinance('${x.id}')">Del</button>`}</td>
     </tr>`).join('')||'<tr><td colspan="6">কোনো রেকর্ড পাওয়া যায়নি।</td></tr>';
 }
@@ -757,7 +969,9 @@ function renderDashboard(){
 
  recent.innerHTML=db.payments.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8).map(x=>{
    const p=db.patients.find(y=>y.id===x.patientId)||{};
-   return `<tr><td>${x.date}</td><td>${esc(p.patientId||'-')}</td><td>${esc(p.name||'Deleted')}</td><td>${esc(p.phone||'-')}</td><td><span class="badge">${x.sessions||0} সেশন</span></td><td><b>${money(x.amount)}</b></td><td><span class="small" style="color:#0284c7; font-weight:600;">${esc(x.addedBy || 'Direct / Old')}</span></td></tr>`
+   const sType = x.serviceType || 'Physiotherapy';
+   const fullNoteDisplay = x.note ? `<b>[${sType}]</b> ${esc(x.note)}` : `<b>[${sType}]</b>`;
+   return `<tr><td>${x.date}</td><td>${esc(p.patientId||'-')}</td><td>${esc(p.name||'Deleted')}</td><td>${esc(p.phone||'-')}</td><td><span class="badge">${x.sessions||0} সেশন</span></td><td><b>${money(x.amount)}</b></td><td>${fullNoteDisplay}</td></tr>`
  }).join('')||'<tr><td colspan="7">কোনো পেমেন্ট নেই।</td></tr>';
 }
 
@@ -808,9 +1022,21 @@ function restoreBackup(e){
  const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.patients||!x.payments||!x.finance)throw 0;db=x;saveData();alert('Backup restore সফল হয়েছে।')}catch{alert('Backup ফাইল সঠিক নয়।')}};r.readAsText(file);
 }
 
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;ummer'[m]||m}))}
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g, function(m) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[m];
+  });
+}
+
 function renderAll(){renderPatients();renderPayments();renderDashboard();renderFinanceSection();renderMarketingTable();}
 
+updateModeUI();
 payDate.value=today();finDate.value=today();reportYear.value=new Date().getFullYear();reportMonth.value=today().slice(0,7);
 filterMonthInput.value=today().slice(0,7);
 filterYearInput.value=new Date().getFullYear();
