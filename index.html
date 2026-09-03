@@ -304,21 +304,28 @@ th{background:#f7f9fb}
   </div>
 </section>
 
-<div id="modal" class="panel hidden" style="position:fixed;inset:8% 5%;max-width:720px;margin:auto;z-index:10;box-shadow:0 10px 50px #0004">
-<h3 id="modalTitle">নতুন রোগী</h3>
-<div class="formgrid">
-<div class="field"><label>Patient ID</label><input id="pId" readonly placeholder="Auto Generated"></div>
-<div class="field"><label>রোগীর নাম *</label><input id="pName"></div>
-<div class="field"><label>মোবাইল নম্বর *</label><input id="pPhone"></div>
-<div class="field"><label>বয়স</label><input id="pAge" type="number"></div>
-<div class="field"><label>সমস্যা / Diagnosis</label><input id="pProblem"></div>
-<div class="field"><label>মোট ফি</label><input id="pFee" type="number" min="0"></div>
-<div class="field"><label>মোট সেশন সংখ্যা</label><input id="pTotalSessions" type="number" min="0" placeholder="যেমন: ১০"></div>
-<div class="field"><label>ঠিকানা</label><input id="pAddress"></div>
-<div class="field full"><label>নোট</label><textarea id="pNote" rows="2"></textarea></div>
-</div><br>
-<button class="btn" onclick="savePatient()">সেভ করুন</button>
-<button class="btn2" onclick="closeModal()">বন্ধ করুন</button>
+<!-- নতুন রোগী পপআপ উইন্ডো (মোবাইলে স্ক্রোল করার ও বাটন দৃশ্যমান রাখার সুবিধা সহ) -->
+<div id="modal" class="panel hidden" style="position:fixed; inset:5% 3%; max-width:720px; max-height:90vh; margin:auto; z-index:10; box-shadow:0 10px 50px #0004; display:flex; flex-direction:column; padding:20px;">
+  <h3 id="modalTitle" style="margin-top:0; margin-bottom:12px; flex-shrink:0;">নতুন রোগী</h3>
+  
+  <div style="overflow-y:auto; flex-grow:1; padding-right:5px; margin-bottom:15px;">
+    <div class="formgrid">
+      <div class="field"><label>Patient ID</label><input id="pId" readonly placeholder="Auto Generated"></div>
+      <div class="field"><label>রোগীর নাম *</label><input id="pName"></div>
+      <div class="field"><label>মোবাইল নম্বর *</label><input id="pPhone"></div>
+      <div class="field"><label>বয়স</label><input id="pAge" type="number"></div>
+      <div class="field"><label>সমস্যা / Diagnosis</label><input id="pProblem"></div>
+      <div class="field"><label>মোট ফি</label><input id="pFee" type="number" min="0"></div>
+      <div class="field"><label>মোট সেশন সংখ্যা</label><input id="pTotalSessions" type="number" min="0" placeholder="যেমন: ১০"></div>
+      <div class="field"><label>ঠিকানা</label><input id="pAddress"></div>
+      <div class="field full"><label>নোট</label><textarea id="pNote" rows="2"></textarea></div>
+    </div>
+  </div>
+
+  <div style="flex-shrink:0; display:flex; gap:10px; border-top:1px solid #eee; padding-top:12px;">
+    <button class="btn" onclick="savePatient()" style="flex:1;">সেভ করুন</button>
+    <button class="btn2" onclick="closeModal()" style="flex:1;">বন্ধ করুন</button>
+  </div>
 </div>
 
 <div id="patientDetailModal" class="panel hidden" style="position:fixed;inset:5% 5%;max-width:850px;margin:auto;z-index:20000;box-shadow:0 10px 50px #0006; overflow-y:auto; background:#fff;">
@@ -375,7 +382,6 @@ function toggleFullMode() {
     localStorage.setItem('user_full_mode', isUserFullMode);
     updateModeUI();
     
-    // লাইট মোডে চলে গেলে যদি সিক্রেট ট্যাবে (যেমন finance) থাকে, তবে ড্যাশবোর্ডে ফিরিয়ে আনবে
     const currentActive = document.querySelector('.section.active');
     if(!isUserFullMode && currentActive && ['finance', 'marketing', 'backup'].includes(currentActive.id)) {
         show('dashboard', document.querySelectorAll('.topnav button')[0]);
@@ -428,8 +434,6 @@ function verifyFinancePin() {
     const savedFinPin = localStorage.getItem('finance_security_pin') || '5678';
     if(entered === savedFinPin) {
         document.getElementById('financePinScreen').classList.add('hidden');
-        // 'আর্থিক হিসাব' বাটনটি হলো চতুর্থ দৃশ্যমান বা ইনডেক্স ৩
-        const financeBtnIndex = isUserFullMode ? 3 : 3; 
         show('finance', document.querySelectorAll('.topnav button')[3]);
     } else {
         alert('ভুল ফাইন্যান্স পিন!');
@@ -798,7 +802,6 @@ function deletePatient(pid){
 function addPayment(){
  const pid=payPatient.value, amount=Number(payAmount.value||0), sessions=Number(paySessions.value||0);
  
- // লাইট মোডে সার্ভিস ও নোট ডিফল্ট থাকবে, ফুল মোডে সিলেক্ট করা মান নিবে
  const serviceEle = document.getElementById('payServiceType');
  const noteEle = document.getElementById('payNote');
  
