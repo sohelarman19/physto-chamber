@@ -132,7 +132,16 @@ th{background:#f7f9fb}
 
 <main class="main">
 <div class="top">
-  <div><h1>Physiotherapy Chamber Manager</h1><div class="small" id="modeStatusText">অনলাইন সিংক ও সিকিউরিটি সুরক্ষিত</div></div>
+  <div>
+    <h1>Physiotherapy Chamber Manager</h1>
+    <div class="small" id="modeStatusText" style="display:flex; align-items:center; gap:10px; margin-top:4px; flex-wrap:wrap;">
+      ফুল মোড অন আছে (সব ফিচার দৃশ্যমান) 
+      <span id="syncStatusBadge" style="font-size: 12px; background: #e9f7ef; color: #147043; padding: 2px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #c3e6cb;">
+        <span style="width: 7px; height: 7px; background: #22c55e; border-radius: 50%; display: inline-block;"></span> 
+        অনলাইন সিংক চালু
+      </span>
+    </div>
+  </div>
   <div style="display:flex;gap:8px; flex-wrap:wrap;">
     <button class="btn" onclick="openPatient()">+ নতুন রোগী</button>
   </div>
@@ -169,7 +178,6 @@ th{background:#f7f9fb}
       <div class="field"><label>পরিশোধের টাকা</label><input type="number" id="payAmount" min="0"></div>
       <div class="field"><label>সেশন সংখ্যা</label><input type="number" id="paySessions" min="0" placeholder="যেমন: ১"></div>
       
-      <!-- লাইট মোডে লুকানো থাকবে, ফুল মোডে দেখাবে -->
       <div class="field full full-mode-only">
         <label>মূল সার্ভিস নির্বাচন</label>
         <select id="payServiceType">
@@ -304,7 +312,6 @@ th{background:#f7f9fb}
   </div>
 </section>
 
-<!-- নতুন রোগী পপআপ উইন্ডো (মোবাইলে স্ক্রোল করার ও বাটন দৃশ্যমান রাখার সুবিধা সহ) -->
 <div id="modal" class="panel hidden" style="position:fixed; inset:5% 3%; max-width:720px; max-height:90vh; margin:auto; z-index:10; box-shadow:0 10px 50px #0004; display:flex; flex-direction:column; padding:20px;">
   <h3 id="modalTitle" style="margin-top:0; margin-bottom:12px; flex-shrink:0;">নতুন রোগী</h3>
   
@@ -364,18 +371,46 @@ function updateModeUI() {
     const btn = document.getElementById('modeToggleBtn');
     const fullModeElements = document.querySelectorAll('.full-mode-only');
     
+    // মোড টেক্সট আপডেট করার সময় সিংক ব্যাজটি ঠিক রেখে আগের টেক্সট অংশটুকু বদলানো হচ্ছে
+    const modeTextSpan = document.getElementById('modeStatusText');
+    const syncBadgeHTML = `
+      <span id="syncStatusBadge" style="font-size: 12px; background: #e9f7ef; color: #147043; padding: 2px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #c3e6cb;">
+        <span style="width: 7px; height: 7px; background: #22c55e; border-radius: 50%; display: inline-block;"></span> 
+        অনলাইন সিংক চালু
+      </span>`;
+
     if(isUserFullMode) {
         btn.textContent = '💻 ফুল মোড (Active)';
         btn.style.background = '#047857';
         fullModeElements.forEach(el => el.style.display = '');
-        document.getElementById('modeStatusText').textContent = 'ফুল মোড অন আছে (সব ফিচার দৃশ্যমান)';
+        modeTextSpan.innerHTML = `ফুল মোড অন আছে (সব ফিচার দৃশ্যমান) ${syncBadgeHTML}`;
     } else {
         btn.textContent = '📱 লাইট মোড (Active)';
         btn.style.background = '#b45309';
         fullModeElements.forEach(el => el.style.display = 'none');
-        document.getElementById('modeStatusText').textContent = 'লাইট মোড অন আছে (৪টি মূল বাটন)';
+        modeTextSpan.innerHTML = `লাইট মোড অন আছে (৪টি মূল বাটন) ${syncBadgeHTML}`;
+    }
+    updateOnlineStatus();
+}
+
+function updateOnlineStatus() {
+    const badge = document.getElementById('syncStatusBadge');
+    if(!badge) return;
+    if (navigator.onLine) {
+        badge.innerHTML = `<span style="width: 7px; height: 7px; background: #22c55e; border-radius: 50%; display: inline-block;"></span> অনলাইন সিংক চালু`;
+        badge.style.background = '#e9f7ef';
+        badge.style.color = '#147043';
+        badge.style.borderColor = '#c3e6cb';
+    } else {
+        badge.innerHTML = `<span style="width: 7px; height: 7px; background: #ef4444; border-radius: 50%; display: inline-block;"></span> অফলাইন মোড`;
+        badge.style.background = '#fee2e2';
+        badge.style.color = '#b91c1c';
+        badge.style.borderColor = '#fecaca';
     }
 }
+
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
 
 function toggleFullMode() {
     isUserFullMode = !isUserFullMode;
@@ -568,6 +603,24 @@ dbRef.on('value', (snapshot) => {
 function saveData(){ dbRef.set(db); }
 function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
+// Reserve the next Patient ID atomically in Firebase.
+// This prevents duplicate IDs when 2+ devices add patients at the same time.
+function reserveNextPatientId(){
+ return dbRef.child('patientIdCounter').transaction(current=>{
+   let n=Number(current||0);
+   if(!n){
+     db.patients.forEach(p=>{
+       const m=String(p.patientId||'').match(/^P-(\d+)$/);
+       if(m) n=Math.max(n,Number(m[1]));
+     });
+   }
+   return n+1;
+ }).then(result=>{
+   if(!result.committed) throw new Error('Patient ID reserve failed');
+   return 'P-'+String(result.snapshot.val()).padStart(4,'0');
+ });
+}
+
 function nextPatientId(){
  const nums=db.patients.map(p=>{
    const m=String(p.patientId||'').match(/^P-(\d+)$/);
@@ -600,7 +653,7 @@ function openPatient(pid=null){
 }
 function closeModal(){document.getElementById('modal').classList.add('hidden');editId=null}
 
-function savePatient(){
+async function savePatient(){
  const name=pName.value.trim(), phone=pPhone.value.trim();
  if(!name||!phone){alert('রোগীর নাম ও মোবাইল নম্বর দিন।');return}
  const deviceInfo = getDeviceInfo();
@@ -609,9 +662,23 @@ function savePatient(){
    fee:Number(pFee.value||0), totalSessions:Number(pTotalSessions.value||0), 
    address:pAddress.value, note:pNote.value, addedBy: deviceInfo
  };
- if(editId) Object.assign(db.patients.find(x=>x.id===editId),obj);
- else db.patients.push({id:id(),createdAt:today(),...obj});
- closeModal();saveData();
+ try{
+   if(editId){
+     const existing=db.patients.find(x=>x.id===editId);
+     if(!existing) return;
+     Object.assign(existing,obj);
+   }else{
+     // Never trust the preview ID in the form for a new patient.
+     // Reserve the final ID atomically from Firebase first.
+     obj.patientId=await reserveNextPatientId();
+     db.patients.push({id:id(),createdAt:today(),...obj});
+   }
+   closeModal();
+   saveData();
+ }catch(err){
+   console.error(err);
+   alert('Patient ID তৈরি করা যায়নি। ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।');
+ }
 }
 
 function ensurePatientIds(){
@@ -732,23 +799,42 @@ function openWhatsApp(phone, name, due, customText='') {
     window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-function sendBulkWhatsApp() {
-    const text = document.getElementById('marketMsg').value.trim();
-    if(!text) {alert('মেসেজ লিখুন।'); return;}
-    if(db.patients.length === 0) {alert('কোনো রোগী নেই।'); return;}
-    
-    if(confirm(`মোট ${db.patients.length} জন রোগীর কাছে WhatsApp বার্তা পাঠাতে চান?`)) {
-        db.patients.forEach((p, index) => {
-            setTimeout(() => {
-                let cleanPhone = p.phone.replace(/[^0-9+]/g, '');
-                if(!cleanPhone.startsWith('+')) {
-                    if(cleanPhone.startsWith('0')) cleanPhone = '+88' + cleanPhone;
-                    else cleanPhone = '+880' + cleanPhone;
-                }
-                window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
-            }, index * 800);
-        });
+let bulkWhatsAppTimer=null;
+let bulkWhatsAppQueue=[];
+let bulkWhatsAppIndex=0;
+
+function normalizeWhatsAppNumber(phone){
+    let clean=String(phone||'').replace(/[^0-9+]/g,'');
+    if(clean.startsWith('+')) return clean.substring(1);
+    if(clean.startsWith('0')) return '88'+clean;
+    return '880'+clean;
+}
+
+function openNextBulkWhatsApp(){
+    if(bulkWhatsAppIndex>=bulkWhatsAppQueue.length){
+        clearInterval(bulkWhatsAppTimer);
+        bulkWhatsAppTimer=null;
+        alert('সব WhatsApp chat link খোলা হয়েছে। এখন WhatsApp-এ প্রয়োজন হলে Send চাপুন।');
+        return;
     }
+    const p=bulkWhatsAppQueue[bulkWhatsAppIndex++];
+    const phone=normalizeWhatsAppNumber(p.phone);
+    const url=`https://wa.me/${phone}?text=${encodeURIComponent(document.getElementById('marketMsg').value.trim())}`;
+    window.open(url,'_blank','noopener');
+}
+
+function sendBulkWhatsApp(){
+    const text=document.getElementById('marketMsg').value.trim();
+    if(!text){alert('মেসেজ লিখুন।');return;}
+    if(!db.patients.length){alert('কোনো রোগী নেই।');return;}
+    bulkWhatsAppQueue=db.patients.filter(p=>String(p.phone||'').trim());
+    bulkWhatsAppIndex=0;
+    if(!bulkWhatsAppQueue.length){alert('কোনো বৈধ মোবাইল নম্বর পাওয়া যায়নি।');return;}
+    if(!confirm(`মোট ${bulkWhatsAppQueue.length} জন রোগীর WhatsApp chat link একে একে খুলতে চান?`)) return;
+    // Browser popup blockers may stop multiple tabs. This queue spaces openings out.
+    openNextBulkWhatsApp();
+    clearInterval(bulkWhatsAppTimer);
+    bulkWhatsAppTimer=setInterval(openNextBulkWhatsApp,1800);
 }
 
 function renderPatients(){
@@ -1011,6 +1097,7 @@ function yearReport(){
  const sess=db.payments.filter(x=>x.date.startsWith(y)).reduce((a,b)=>a+Number(b.sessions||0),0);
  const inc=db.finance.filter(x=>x.type==='income'&&x.date.startsWith(y)).reduce((a,b)=>a+Number(b.amount),0);
  const exp=db.finance.filter(x=>x.type==='expense'&&x.date.startsWith(y)).reduce((a,b)=>a+Number(b.amount),0);
+ reportResult.classList.append('hidden');
  reportResult.classList.remove('hidden');
  reportResult.innerHTML=`<h3>${y} — বার্ষিক রিপোর্ট</h3><p>সম্পন্ন সেশন: <b>${sess} টি</b></p><p>Patient Payment: <b>${money(pay)}</b></p><p>অন্যান্য আয়: <b>${money(inc)}</b></p><p><b>মোট আয়: ${money(pay+inc)}</b></p><p>খরচ: <b>${money(exp)}</b></p><p><b>নিট: ${money(pay+inc-exp)}</b></p>`;
 }
